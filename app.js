@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mysql = require('mysql');
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const app = express();
 
 const connection = mysql.createConnection({
@@ -21,6 +23,26 @@ app.use(bodyParser.urlencoded({
 
 connection.connect(function(err){
   (err) ? console.log(err) : console.log(connection);
+});
+
+
+
+app.post('/api/dangky/insert', (req, res) => {
+ var sql = "INSERT INTO `khach_hang`( `TEN_KH`, `USER_KH`, `PASS`, `EMAIL`, `SDT`) VALUES ('"+req.body.fullName+"','"+req.body.userName+"','"+req.body.pass+"','"+req.body.email+"', '"+req.body.num+"')";
+//var sql = "INSERT INTO `khach_hang`( `TEN_KH`, `USER_KH`, `PASS`, `EMAIL`, `SDT`) VALUES ('aa','aa','aa','aa', 'aa')";
+  //var sql = "INSERT INTO `khach_hang`( `TEN_KH`, `USER_KH`, `PASS`, `EMAIL`, `SDT`) VALUES ('"+req.body.fullName+"','"+req.body.userName+"','"+req.body.pass+"','"+req.body.email+"','"+req.body.num+"')";
+  connection.query(sql, function(error, result){
+    if(error ) throw error;
+    res.send({users : result})
+  });  
+})
+
+app.get('/api/user', (req, res) => {
+  var sql = "SELECT * FROM `khach_hang`";
+  connection.query(sql, function(err, results) {
+    if (err) throw err;
+    res.json({users: results});
+  });
 });
 
 app.get('/api/khuyenmai', (req, res) => {
@@ -102,14 +124,20 @@ app.post('/laptop/api/update', function(req, res){
 
 
 app.post('/cart/api/insert', function(req, res){
-  //const sql = "INSERT INTO`gio_hang( TEN_LAPTOP, GIA, SO_LUONG, ID_LAPTOP) VALUES ('"+req.body.nameLaptop+"','"+req.body.price+"','"+req.body.quality+"','"+req.body.idLaptop+"')";
-  //const sql = "INSERT INTO gio_hang( ID_GIO, TEN_LAPTOP, GIA, SO_LUONG, ID_LAPTOP) VALUES (1, 'aa',2000, 1, 1)";
   const sql = "INSERT INTO gio_hang( TEN_LAPTOP, GIA, SO_LUONG, ID_LAPTOP) VALUES ('"+req.body.nameLaptop+"','"+req.body.price+"','"+req.body.quality+"', '"+req.body.idLaptop+"')";
   connection.query(sql, function(err, results) {
     console.log("thanh cong");
     if(err) throw err;
     res.send({cart: results});
   }); 
+})
+
+app.post('/cart/api/delete', function (req, res) {
+  const sql = "DELETE FROM `gio_hang` WHERE ID_LAPTOP='"+req.body.ID_LAPTOP+"'";
+  connection.query(sql, function(err, results) {
+    if(err) throw err;
+    res.send({cart: results});
+  })
 })
 
 
@@ -121,5 +149,29 @@ app.get('/api/cart', (req, res) => {
   });
 })
 
+app.get('/chi-tiet/api/cart', (req, res) => {
+  var sql = "SELECT * FROM gio_hang";
+  connection.query(sql, function(err, results) {
+    if (err) throw err;
+    res.json({cart: results});
+  });
+})
+
+app.post('/cart/api/update', (req, res) => {
+  var sql = "UPDATE gio_hang SET SO_LUONG ='"+req.body.SO_LUONG+"' WHERE ID_LAPTOP = '"+req.body.ID_LAPTOP+"' ";
+  connection.query(sql, function(err, results) {
+    if (err) throw err;
+    res.json({cart: results});
+  });
+})
+
+app.post('/laptop/api/update', function(req, res){
+  //const sql = "INSERT INTO laptop(ID_LAPTOP, TEN_LAPTOP, MOTANGAN_LAPTOP, MOTA_LAPTOP, GIA_LAPTOP, IMG, ID_LOAI) VALUES ('"+req.body.ID_LAPTOP+"','"+req.body.TEN_LAPTOP+"','"+req.body.MOTANGAN_LAPTOP+"','"+req.body.MOTA_LAPTOP+"','"+req.body.GIA_LAPTOP+"','"+req.body.IMG+"','"+req.body.ID_LOAI+"')";
+  const sql = "SELECT * FROM laptop WHERE ID_LAPTOP= '"+req.body.ID_LAPTOP+"'";
+  connection.query(sql, function(err, results) {
+    if(err) throw err;
+    res.send({products: results});
+  });          
+ })
 
 app.listen(4000, () => console.log('App listening on port 4000'));
